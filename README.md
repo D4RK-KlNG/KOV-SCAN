@@ -7,7 +7,7 @@
 - Local passive checks: headers, SSL, HTML insights, robots/sitemap, common paths, minimal port reachability.
 - Chain-style connected box output (neat, centered).
 - Save scan result option, re-scan loop.
-- Multi-file structure for extensibility.
+- Multi-file structure.
 
 ## Install
 ```bash
