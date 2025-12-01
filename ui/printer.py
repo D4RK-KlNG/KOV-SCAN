@@ -69,71 +69,92 @@ def print_chain_report(res):
 
     host = res.get("target","-")
     ip = res.get("ip","-")
+    
     lines = []
     lines.append(f"[1] TARGET      : {host}")
     lines.append(f"[2] IP INFO     : {ip} • {res.get('api_ipinfo',{}).get('country','-') if isinstance(res.get('api_ipinfo',{}),dict) else '-'}")
     lines.append(f"[3] DNS LOOKUP  : {'available' if res.get('api_dnslookup') else 'none'}")
-    #mannnn it's boring.....
+
     tw = res.get("api_whatweb")
     techline = (tw.strip().splitlines()[0] if isinstance(tw,str) and tw.strip() else ("; ".join(res.get('api_threatminer',{}).keys()) if res.get('api_threatminer') else "none"))
     lines.append(f"[4] TECH STACK  : {techline}")
+
     lines.append(f"[5] SUBDOMAINS  : {res.get('api_hostsearch','none')}")
+
     pres = res.get("security_headers_present",[]) if res.get("security_headers_present") else []
     miss = res.get("security_headers_missing",[]) if res.get("security_headers_missing") else []
-    
     headers = res.get("headers",{}) or {}
+
     if not pres and headers:
         for h in ["Content-Security-Policy","Strict-Transport-Security","X-Frame-Options","X-Content-Type-Options","Referrer-Policy"]:
             if h in headers:
                 pres.append(h)
             else:
                 miss.append(h)
+
     lines.append(f"[6] SEC-HEADERS : Present: {', '.join(pres) if pres else 'none'}")
     lines.append(f"     Missing: {', '.join(miss) if miss else 'none'}")
+
     lines.append(f"[7] HTML CHECK  : {', '.join(res.get('html_notes',[])) if res.get('html_notes') else 'none'}")
-    lines.append(f"[8] COMMON PATHS: {len(res.get('common_paths',[]))} found")
+
+    # -------------------------
+    #jji
+    cp = res.get("common_paths", [])
+    lines.append(f"[8] COMMON PATHS: {len(cp)} found")
+
+    if cp:
+        for p, code in cp:
+            lines.append(f"    {p} → {code}")
+            lines.append("")  # blank line
+    else:
+        lines.append("    none")
+    # -------------------------
+
     lines.append(f"[9] ROBOTS/SITE : {', '.join(res.get('robots_sitemap',[])) if res.get('robots_sitemap') else 'none'}")
     lines.append(f"[10] PORTS       : {', '.join(str(p) for p in res.get('ports',[])) if res.get('ports') else 'none'}")
     lines.append(f"[11] WHOIS       : {'present' if res.get('api_whois') else 'none'}")
     lines.append(f"[12] SUMMARY     : {res.get('summary','-')}")
+    
     rlist = res.get("risk_findings",[])
     lines.append(f"[13] RISK        : {len(rlist)} findings" if rlist else "[13] RISK        : none")
 
     print_chain_box(lines, rlist, res)
+
 
 def print_chain_box(lines, risk_list, res):
     tw = term_width()
     inner_w = min(max(len(l) for l in lines) + 6, tw - 6)
     top = RED + "+" + "-" * inner_w + "+" + RESET
     print("\n" + top)
+
     for l in lines:
         wrapped = textwrap.wrap(l, width=inner_w - 4) or [""]
         for wline in wrapped:
             content = "  " + wline.ljust(inner_w - 4) + "  "
             print(RED + "|" + RESET + WHITE + content + RESET + RED + "|" + RESET)
+
     print(RED + "|" + RESET + WHITE + "  " + ("-"*(inner_w-4)) + "  " + RESET + RED + "|" + RESET)
 
-    
     if risk_list:
         print(RED + "|" + RESET + WHITE + "  " + "RISK DETAILS:".ljust(inner_w-4) + "  " + RESET + RED + "|" + RESET)
         for sev,msg in risk_list:
-            tag = sev
-            if sev == "CRITICAL" or sev == "HIGH":
+            if sev in ["CRITICAL","HIGH"]: 
                 color = YELLOW
             elif sev == "MEDIUM":
                 color = CYAN
             else:
                 color = GREEN
-            line = f"{tag}: {msg}"
+            
+            line = f"{sev}: {msg}"
             wrapped = textwrap.wrap(line, width=inner_w - 4) or [""]
             for wline in wrapped:
                 print(RED + "|" + RESET + color + "  " + wline.ljust(inner_w - 4) + "  " + RESET + RED + "|" + RESET)
     else:
         print(RED + "|" + RESET + WHITE + "  " + "No passive risk findings.".ljust(inner_w-4) + "  " + RESET + RED + "|" + RESET)
 
-    
     print(RED + "|" + RESET + WHITE + "  " + ("-"*(inner_w-4)) + "  " + RESET + RED + "|" + RESET)
-    
+
+    # EXTRA
     try:
         apitxt = ""
         if res.get("api_whatweb"):
@@ -151,6 +172,7 @@ def print_chain_box(lines, risk_list, res):
         pass
 
     print(top + "\n")
+
 
 def chain_report_interactive(res):
     print_chain_report(res)
