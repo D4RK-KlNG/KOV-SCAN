@@ -19,7 +19,7 @@ def main_loop():
     last_scan = None
     while True:
         print()
-        cmd = input_prompt("Command (type 'help' for options): ").strip().lower()
+        cmd = input_prompt("~/KOV-SCAN $").strip().lower()
         if cmd in ("exit","quit","q"):
             print("\nExiting Kov Extreme. Stay legal.")
             break
