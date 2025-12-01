@@ -1,19 +1,17 @@
-
+#python3
 """
-==========================
-developed by: D4RK-K1NG 
-
-contact:  t.me/D4RK_KlNG
-==========================
+×××××××××××××××××××××××××××××××××××××××××××××
+KOV-SCAN - Entry point
+Developed by D4RK-K1NG (educational only)
+×××××××××××××××××××××××××××××××××××××××××××××
 """
 
 import sys
-import os
 from ui.printer import show_title, chain_report_interactive, input_prompt
 from scanners.passive_checks import all_in_one_passive
 from utils.helpers import ensure_requirements, save_scan_prompt
 
-# Ensure runtime requirements 
+
 ensure_requirements()
 
 def main_loop():
@@ -28,7 +26,7 @@ def main_loop():
         if cmd in ("help","?"):
             print("""
 Commands:
-  allinone   - run full passive All-in-One scan
+  allinone   - run full passive All-in-One scan (APIs + local)
   save       - save last scan to file
   help       - this help
   exit       - quit
@@ -40,13 +38,14 @@ Commands:
                 print("No target provided.")
                 continue
             print()
-            # run the combined scan
-            res = all_in_one_passive(target)
+            try:
+                res = all_in_one_passive(target)
+            except Exception as e:
+                print("Scan failed:", e)
+                continue
             last_scan = res
             chain_report_interactive(res)
-            # ask save
             save_scan_prompt(res)
-            # ask rescan or continue
             cont = input_prompt("Scan another? (y/n): ").strip().lower()
             if cont == "y":
                 show_title()
@@ -59,6 +58,8 @@ Commands:
                 print("No prior scan available. Run allinone first.")
                 continue
             save_scan_prompt(last_scan)
+            continue
+        elif cmd == "":
             continue
         else:
             print("Unknown command. Type 'help'.")
